@@ -2,21 +2,36 @@
 
 A local Genshin Impact workspace with a Rich terminal interface and a FastAPI dashboard. Public showcase data comes from Enka.Network; build rankings come from Akasha. Optional HoYoLAB cookies enable private daily notes.
 
-## Deploy to Vercel (public showcase and rankings)
+## Deploy to Vercel (device-local settings and HoYoLAB)
 
 Import `Arthexy/Akasha-Archive` at https://vercel.com/new. Use the **FastAPI**
 framework preset and repository root (`./`). Leave build and output overrides
 disabled. Python 3.12 is selected by `.python-version`.
 
 Vercel automatically enables public mode via `VERCEL=1`. This mode ignores local
-configuration and HoYoLAB environment credentials, blocks server configuration
-writes and private endpoints, and hides private account features. Do not upload
+configuration and HoYoLAB environment credentials and blocks server configuration
+writes and the legacy shared private endpoints. Do not upload
 `config.json` or add HoYoLAB cookies to Vercel.
 
 Default UID, theme, language, ranking preference and recent accounts are stored
 in each visitor's browser. They do not sync between devices or browsers and are
 removed when site data is cleared. Public Enka/Akasha data is fetched on demand;
 the server cache is temporary and keyed by UID.
+
+HoYoLAB cookies, region and bound-account selection are also saved in each
+visitor's browser, under a separate storage key. Saving or deleting cookies
+does not send them to the server. Connection tests, Daily Notes and Explore
+World send them in a same-origin POST body to the site's backend, which calls
+HoYoLAB using a fresh request-scoped adapter. The backend does not save the
+cookies or cache private results. Responses use `Cache-Control: no-store`.
+The browser enforces returned refresh cooldowns. Each private fetch verifies
+the selected account belongs to those credentials.
+
+Browser storage is accessible to scripts on this origin and anyone using that
+browser profile. Use HTTPS in production. Clearing site data or deleting
+credentials removes this browser's connection; it does not revoke the cookies
+at HoYoLAB. Live authenticated integration still requires valid user cookies
+and may require verification in the official HoYoLAB app.
 
 Deployment and production hosts are allowed through Vercel's URL environment
 variables. For a custom domain, add its hostname to `HOYO_HUB_ALLOWED_HOSTS`

@@ -2,6 +2,24 @@
 const $ = (id) => document.getElementById(id);
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
 const publicMode = document.documentElement?.dataset.public === "true";
+function readDeviceHoyo() {
+  const result = {enabled:false,region:"os",game_uid:"",server:"",cookies:{}};
+  try {
+    const saved = JSON.parse(localStorage.getItem("hoyo-device-hoyolab") || "{}");
+    if (typeof saved?.enabled === "boolean") result.enabled = saved.enabled;
+    if (["os","cn"].includes(saved?.region)) result.region = saved.region;
+    if (/^[0-9]{9,10}$/.test(saved?.game_uid)) result.game_uid = String(saved.game_uid);
+    if (typeof saved?.server === "string") result.server = saved.server;
+    const allowed = ["ltuid_v2","ltoken_v2","ltmid_v2","cookie_token_v2","account_id_v2","account_mid_v2"];
+    if (saved?.cookies && typeof saved.cookies === "object") {
+      for (const key of allowed) if (typeof saved.cookies[key] === "string") result.cookies[key] = saved.cookies[key];
+    }
+  } catch {}
+  return result;
+}
+function saveDeviceHoyo(settings) {
+  localStorage.setItem("hoyo-device-hoyolab", JSON.stringify(settings));
+}
 function devicePreferences(config, changes) {
   let saved = {};
   try {saved = JSON.parse(localStorage.getItem("hoyo-device-preferences") || "{}");} catch {}
@@ -17,6 +35,9 @@ function devicePreferences(config, changes) {
   if (changes) {
     localStorage.setItem("hoyo-device-preferences", JSON.stringify({public_account:result.public_account,akasha:result.akasha,ui:result.ui}));
   }
+  const hoyo = readDeviceHoyo();
+  const {cookies, ...preferences} = hoyo;
+  result.hoyolab = {...preferences,configured:!!(cookies.ltuid_v2 && cookies.ltoken_v2)};
   return result;
 }
 const state = {config: null, characters: [], rankings: [], uid: "", loadedUid: "", view: "overview", generation: 0, notesGeneration: 0, loading: false, rankingsLoading: false, rankingRequest: 0, rankPage: 1, charPage: 1, pageSize: 10, sortDirection: 1, rankSort: "rank", rankDir: 1};
@@ -33,7 +54,7 @@ const views = {
   settings: ["05", "Pengaturan", "Preferensi, koneksi HoYoLAB, dan akun catatan harian."],
   detail: ["", "Detail build", "Snapshot showcase publik dari Enka.Network."]
 };
-if (publicMode) views.settings[2] = "Preferensi disimpan di browser perangkat ini.";
+if (publicMode) views.settings[2] = "Preferensi dan koneksi HoYoLAB disimpan di browser perangkat ini.";
 const escape = (v) => String(v ?? "—").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const number = (v) => v == null ? t("Belum tersedia") : Number(v).toLocaleString(language==="en" ? "en-US" : "id-ID", {maximumFractionDigits: Number(v)>0 && Number(v)<0.1 ? 4 : 1});
 const statValue = (s) => `${number(s.value)}${s.percent ? "%" : ""}`;
@@ -118,14 +139,50 @@ function notice(message, error=false) { $("notice").textContent = t(message); $(
 async function api(path, method="GET", body) {
   if (publicMode && path === "/config" && method === "PATCH") {
     if (body.public_account?.uid !== undefined && body.public_account.uid !== "" && !/^[0-9]{9,10}$/.test(body.public_account.uid)) throw new Error("Masukkan UID Genshin berisi 9 atau 10 digit.");
+    if (body.hoyolab) {
+      const settings = readDeviceHoyo(), changes = body.hoyolab;
+      if (changes.game_uid !== undefined) {
+        if (changes.game_uid !== "" && !/^[0-9]{9,10}$/.test(changes.game_uid)) throw new Error("Masukkan UID Genshin berisi 9 atau 10 digit.");
+        settings.game_uid = changes.game_uid;
+      }
+      if (typeof changes.enabled === "boolean") settings.enabled = changes.enabled;
+      saveDeviceHoyo(settings);
+      state.hoyoRevision = (state.hoyoRevision || 0) + 1;
+    }
     return {data:devicePreferences(state.config,body)};
+  }
+  if (publicMode && path === "/auth/hoyolab") {
+    if (method === "DELETE") {
+      localStorage.removeItem("hoyo-device-hoyolab");
+      state.hoyoRevision = (state.hoyoRevision || 0) + 1;
+      state.hoyoStatus = "disabled"; state.resetNotes = true;
+      return {data:{status:"disabled"}};
+    }
+    const allowed = ["ltuid_v2","ltoken_v2","ltmid_v2","cookie_token_v2","account_id_v2","account_mid_v2"];
+    if (method !== "POST" || !body?.cookies || Object.keys(body.cookies).some(key=>!allowed.includes(key)) ||
+        Object.values(body.cookies).some(value=>typeof value !== "string") ||
+        !body.cookies.ltuid_v2 || !body.cookies.ltoken_v2 || !["os","cn"].includes(body.region) || JSON.stringify(body).length > 12000) throw new Error("Invalid HoYoLAB settings.");
+    saveDeviceHoyo({enabled:true,region:body.region,game_uid:"",server:"",cookies:body.cookies});
+    state.hoyoRevision = (state.hoyoRevision || 0) + 1;
+    state.hoyoStatus = "needs_configuration";
+    return {data:{configured:true}};
   }
   const source=path.startsWith("/showcase/") ? `showcase:${path.split("/")[2]}` : path.startsWith("/rankings/") ? `rankings:${path.split("/")[2]}` : ["/notes","/explore"].includes(path) ? path.slice(1) : path==="/refresh" ? ["notes","explore"].includes(body.source) ? body.source : `${body.source}:${body.uid}` : null;
   if(source && waitSeconds(source) && (method==="POST" || source==="notes")) throw new Error(`Dapat diperbarui lagi dalam ${waitSeconds(source)} detik.`);
+  const operation = publicMode ? ["/auth/hoyolab/test","/accounts/hoyolab"].includes(path) ? "accounts" : ["notes","explore"].includes(source) ? source : null : null;
+  const privateGeneration = state.hoyoRevision || 0;
+  if (operation) {
+    path = `/hoyolab/${operation}`; method = "POST"; body = readDeviceHoyo();
+    if (!body.cookies.ltuid_v2 || !body.cookies.ltoken_v2) throw new Error("Configure ltuid_v2 and ltoken_v2 first.");
+    if (operation === "accounts") body.enabled = true;
+  }
   const response = await fetch(`/api/v1${path}`, {method, headers: {"Content-Type":"application/json", "X-CSRF-Token":csrf}, body: body === undefined ? undefined : JSON.stringify(body)});
   const result = await response.json();
+  if (operation && privateGeneration !== (state.hoyoRevision || 0)) throw new Error("Koneksi HoYoLAB berubah. Muat ulang data.");
   if (publicMode && path === "/config" && response.ok) result.data = devicePreferences(result.data);
-  if(source) rememberCooldown(source,result.error?.retry_after_seconds ?? result.meta?.refresh_after_seconds);
+  if (operation && privateGeneration === (state.hoyoRevision || 0)) state.hoyoStatus = response.ok ? "connected" : result.error?.code?.toLowerCase() || "unavailable";
+  if (publicMode && path === "/status" && response.ok) result.data.sources.hoyolab = state.config?.hoyolab.enabled ? state.hoyoStatus || "needs_configuration" : "disabled";
+  if(source && (!operation || privateGeneration === (state.hoyoRevision || 0))) rememberCooldown(source,result.error?.retry_after_seconds ?? result.meta?.refresh_after_seconds);
   const currentSource = ["notes","explore"].includes(source) ? String(result.data?.uid)===String(state.config?.hoyolab.game_uid) : !source || source.endsWith(`:${state.uid}`);
   if(result.meta && currentSource) {
     const stamp=$(`source-${result.meta.source}-time`);
@@ -135,7 +192,6 @@ async function api(path, method="GET", body) {
   return result;
 }
 function show(view, push=true) {
-  if (publicMode && ["notes","explore"].includes(view)) view = "overview";
   if (!views[view]) view = "overview";
   state.view = view;
   document.querySelectorAll(".view").forEach(el => el.hidden = el.id !== `view-${view}`);
@@ -424,7 +480,9 @@ async function loadConfig() {
   if (c.hoyolab.game_uid) $("bound-account").innerHTML = html`<option value="${escape(c.hoyolab.game_uid)}">${escape(c.hoyolab.game_uid)}</option>`;
 }
 async function listAccounts() {
+  const revision = state.hoyoRevision || 0;
   const result = await api("/auth/hoyolab/test", "POST", {});
+  if (publicMode && revision !== (state.hoyoRevision || 0)) return;
   $("bound-account").innerHTML = result.data.map(a=>html`<option value="${escape(a.uid)}">${escape(a.nickname)} / ${escape(a.uid)} / ${escape(a.server)}</option>`).join("") || t('<option value="">Tidak ada akun Genshin terikat</option>');
   if (result.data.some(a=>a.uid === state.config.hoyolab.game_uid)) $("bound-account").value = state.config.hoyolab.game_uid;
   $("auth-status").textContent=t("Koneksi diuji · pilih akun catatan harian");
@@ -520,11 +578,11 @@ $("auth-form").addEventListener("submit", e=>{e.preventDefault();action(async()=
 });});
 $("test-auth").addEventListener("click",()=>action(listAccounts));
 $("delete-auth").addEventListener("click",()=>action(async()=>{
-  if (!confirm(t("Hapus cookie dari config.json lokal? Koneksi HoYoLAB dan catatan harian akan dinonaktifkan. Kredensial dari environment perlu dihapus terpisah."))) return;
+  if (!confirm(t(publicMode ? "Hapus cookie dari browser ini? Koneksi HoYoLAB, catatan harian, dan eksplorasi akan dinonaktifkan." : "Hapus cookie dari config.json lokal? Koneksi HoYoLAB dan catatan harian akan dinonaktifkan. Kredensial dari environment perlu dihapus terpisah."))) return;
   await api("/auth/hoyolab","DELETE"); await loadConfig(); await statuses();
-  $("notes").textContent = $("notes-summary").textContent = t("HoYoLAB dinonaktifkan. Cookie dihapus dari konfigurasi lokal.");
+  $("notes").textContent = $("notes-summary").textContent = t(publicMode ? "HoYoLAB dinonaktifkan. Cookie dihapus dari browser ini." : "HoYoLAB dinonaktifkan. Cookie dihapus dari konfigurasi lokal.");
   $("bound-account").innerHTML = t('<option value="">Belum ada akun dipilih</option>');
-  notice("Cookie lokal dihapus. Jika ada kredensial environment, hapus secara terpisah.");
+  notice(publicMode ? "Cookie dihapus dari browser ini." : "Cookie lokal dihapus. Jika ada kredensial environment, hapus secara terpisah.");
 }));
 $("save-account").addEventListener("click",()=>action(async()=>{
   await api("/config","PATCH",{hoyolab:{enabled:$("hoyo-enabled").checked,game_uid:$("bound-account").value}});
@@ -556,6 +614,13 @@ $("sidebar-toggle").addEventListener("click",()=>{
 $("recent-accounts").addEventListener("change",()=>{if($("recent-accounts").value){$("uid").value=$("recent-accounts").value;loadPublic();}});
 $("forget-accounts").addEventListener("click",()=>{try{localStorage.removeItem("hoyo-public-accounts");renderAccounts();notice("Riwayat akun publik dihapus.");}catch{notice("Browser tidak dapat menghapus riwayat akun.",true);}});
 renderAccounts();
+window.addEventListener("storage",event=>{
+  if (publicMode && ["hoyo-device-hoyolab","hoyo-device-preferences",null].includes(event.key)) action(async()=>{
+    state.hoyoRevision = (state.hoyoRevision || 0) + 1;
+    state.resetNotes=true; state.hoyoStatus=null;
+    await loadConfig(); await loadNotes(); await statuses();
+  });
+});
 $("close-navigation").addEventListener("click",()=>$("navigation-dialog").close());
 $("back-showcase").addEventListener("click",returnToShowcase);
 document.addEventListener("click",e=>{if(e.target.closest("#clear-filters")){$("element-filter").value="";$("showcase-search").value="";state.charPage=1;renderCharacters();}});

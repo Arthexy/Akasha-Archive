@@ -70,6 +70,16 @@ const translations = {
   "Masukkan cookie, simpan, uji koneksi, lalu pilih akun. Tombol tampilkan hanya memperlihatkan nilai yang baru diketik.":"Enter cookies, save, test the connection, then select an account. Show buttons only reveal newly typed values.",
   "karakter":"characters", "HoYoLAB dinonaktifkan. Cookie dihapus dari konfigurasi lokal.":"HoYoLAB disabled. Cookies removed from local configuration.", "Cookie tersimpan. Uji koneksi, lalu pilih akun catatan harian.":"Cookies saved. Test the connection, then select a daily notes account.", "Cookie lokal dihapus. Jika ada kredensial environment, hapus secara terpisah.":"Local cookies deleted. Remove any environment credentials separately.", "Hapus cookie dari config.json lokal? Koneksi HoYoLAB dan catatan harian akan dinonaktifkan. Kredensial dari environment perlu dihapus terpisah.":"Delete cookies from local config.json? HoYoLAB and daily notes will be disabled. Environment credentials must be removed separately.", "HoYoLAB belum aktif. Simpan cookie, uji koneksi, pilih akun, lalu aktifkan catatan harian di Pengaturan.":"HoYoLAB is disabled. Save cookies, test the connection, select an account, then enable daily notes in Settings."
 };
+Object.assign(translations, {
+  "BROWSER INI":"THIS BROWSER",
+  "Koneksi HoYoLAB berubah. Muat ulang data.":"The HoYoLAB connection changed. Reload the data.",
+  "UID publik dan tampilan. Perubahan disimpan di browser perangkat ini.":"Public UID and appearance. Changes are saved in this device's browser.",
+  "Preferensi dan koneksi HoYoLAB disimpan di browser perangkat ini.":"Preferences and the HoYoLAB connection are saved in this device's browser.",
+  "Cookie disimpan di browser perangkat ini. Saat mengambil data, cookie dikirim melalui koneksi HTTPS ke server situs dan diteruskan ke HoYoLAB, tanpa disimpan di server.":"Cookies are saved in this device's browser. When fetching data, they are sent over HTTPS to this site's server and forwarded to HoYoLAB without being stored on the server.",
+  "Hapus cookie dari browser ini? Koneksi HoYoLAB, catatan harian, dan eksplorasi akan dinonaktifkan.":"Delete cookies from this browser? HoYoLAB, daily notes and exploration will be disabled.",
+  "HoYoLAB dinonaktifkan. Cookie dihapus dari browser ini.":"HoYoLAB disabled. Cookies removed from this browser.",
+  "Cookie dihapus dari browser ini.":"Cookies removed from this browser."
+});
 const translationKeys = Object.keys(translations).sort((a,b)=>b.length-a.length);
 const translationPattern = new RegExp("(?<![\\p{L}\\p{N}_])(?:"+translationKeys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|")+")(?![\\p{L}\\p{N}_])","gu");
 function t(value) { return language==="en" ? String(value).replace(translationPattern,key=>translations[key]) : String(value); }

@@ -1,4 +1,4 @@
-"""Loopback-only dashboard. Run with `python cli.py serve`."""
+"""Local dashboard and hosted access with device-local credentials."""
 import asyncio
 import secrets
 import os
@@ -14,10 +14,12 @@ from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from config import CONFIG_PATH, ROOT, Settings, load_config, save_config
+from config import CONFIG_PATH, ROOT, Settings, HoyoSettings, load_config, save_config
 from errors import HubError
 from enka_client import allowed_image
 from services import HubService
+from hoyolab_client import HoYoLABClient
+from datetime import datetime, timezone
 
 
 def merge(target, changes):
@@ -56,7 +58,7 @@ def create_app(config_path=CONFIG_PATH, service=None):
         if public_mode and (request.url.path.startswith("/api/v1/auth/") or request.url.path in (
                 "/api/v1/notes", "/api/v1/explore", "/api/v1/accounts/hoyolab")
                 or (request.url.path == "/api/v1/config" and request.method != "GET")):
-            return JSONResponse({"error": {"code": "PUBLIC_ONLY", "message": "Preferences are saved in your browser. HoYoLAB is unavailable on this public site."}}, 403)
+            return JSONResponse({"error": {"code": "PUBLIC_ONLY", "message": "Use browser-local settings and request-scoped HoYoLAB endpoints on this hosted site."}}, 403)
         if request.method in ("POST", "PATCH", "DELETE", "PUT"):
             origin = request.headers.get("origin", "")
             parsed = urlsplit(origin)
@@ -193,6 +195,31 @@ def create_app(config_path=CONFIG_PATH, service=None):
     @app.get("/api/v1/accounts/hoyolab")
     async def accounts():
         return {"data": await app.state.hub.hoyo.accounts()}
+
+    @app.post("/api/v1/hoyolab/{operation}")
+    async def device_hoyolab(operation: str, request: Request):
+        # Hosted credentials and private results live only within this request.
+        if not public_mode or operation not in ("accounts", "notes", "explore"):
+            raise HubError("NOT_FOUND", "Unknown HoYoLAB operation.", status=404)
+        payload = await body(request)
+        cookies = payload.get("cookies", {})
+        allowed = {"ltuid_v2", "ltoken_v2", "ltmid_v2", "cookie_token_v2", "account_id_v2", "account_mid_v2"}
+        if (not isinstance(cookies, dict) or set(cookies) - allowed
+                or not all(isinstance(value, str) for value in cookies.values())):
+            raise HubError("INVALID_COOKIES", "Unsupported cookie fields.", status=422)
+        if not all(cookies.get(key) for key in ("ltuid_v2", "ltoken_v2")):
+            raise HubError("HOYOLAB_NEEDS_CONFIGURATION", "Configure ltuid_v2 and ltoken_v2 first.", "hoyolab", 401)
+        try:
+            private_settings = HoyoSettings.model_validate(payload)
+        except ValidationError:
+            raise HubError("INVALID_COOKIES", "Invalid HoYoLAB settings.", status=422) from None
+        client = HoYoLABClient(private_settings, settings.network.timeout_seconds, app.state.hub.enka)
+        if operation == "accounts":
+            return {"data": await client.accounts()}
+        data, _ = await getattr(client, operation)()
+        ttl = settings.cache.notes_ttl_seconds if operation == "notes" else settings.cache.public_ttl_seconds
+        return {"data": data, "meta": {"source": "hoyolab", "fetched_at": datetime.now(timezone.utc).isoformat(),
+                "source_updated_at": None, "cached": False, "stale": False, "refresh_after_seconds": ttl}}
 
     @app.get("/api/v1/profile/{uid}")
     async def profile(uid: str):
