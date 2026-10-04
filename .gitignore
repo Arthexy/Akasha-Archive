@@ -1,0 +1,45 @@
+# Local environment and Python caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pytest-tmp*/
+.coverage
+htmlcov/
+
+# Local configuration and credentials (keep config.example.json)
+config.json
+config.json.*
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Logs and machine-specific diagnostics
+*.log
+ssh-setup/
+
+# Local agent settings
+.opencode/
+.impeccable/
+
+# Generated review screenshots
+/*-preview.png
+/*-preview.jpg
+/*-revision-preview.png
+/*-fixed.png
+/*-sweep.png
+/*-motion.png
+/*-refined.png
+/*-aligned.png
+/floating-sidebar-english.png
+/latest-overview-clock.png
+/grouped-revision-preview.png
+/source-status-animation.png
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini

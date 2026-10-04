@@ -1,0 +1,7 @@
+fastapi==0.115.12
+uvicorn==0.34.2
+httpx==0.28.1
+pydantic==2.13.5
+rich==14.0.0
+jinja2==3.1.6
+genshin==1.7.22

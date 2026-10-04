@@ -1,0 +1,162 @@
+{
+  "sacred-mountain.png": {
+    "source": "https://act-webstatic.hoyoverse.com/map_manage/20250321/0fd1e45e9d1aa172e4d0a4f306fa66b5_4940540135070826048.png",
+    "origin": "Official HoYoLAB interactive-map API, map/list, app_sn=ys_obc",
+    "retrieved": "2026-10-02"
+  },
+  "temple-of-space.png": {
+    "source": "https://act-webstatic.hoyoverse.com/map_manage/20260623/36d17c77d73344c398bdf15e54e29479_6427764314577324075.png",
+    "origin": "Official HoYoLAB interactive-map API, map/list, app_sn=ys_obc",
+    "retrieved": "2026-10-02"
+  },
+  "frost-moon.png": {
+    "source": "https://act-webstatic.hoyoverse.com/map_manage/20260610/f606cc0b78c5cae1fd146a33a6525d1f_4055703050528841489.png",
+    "origin": "Official HoYoLAB interactive-map API, map/list, app_sn=ys_obc",
+    "retrieved": "2026-10-02"
+  },
+  "region-20-logo.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterIcon_Snezhnaya.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-20-background.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterBackground_Snezhnaya.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-14-logo.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterIcon_TheOldSea.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-14-background.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterBackground_TheOldSea.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-9-logo.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterIcon_Fengdan.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-9-background.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterBackground_Fengdan.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-8-logo.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterIcon_Xumi.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-8-background.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterBackground_Xumi.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-6-logo.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterIcon_ChasmsMaw.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-6-background.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterBackground_ChasmsMaw.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-5-logo.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterIcon_Enkanomiya.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-5-background.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterBackground_Enkanomiya.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-4-logo.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterIcon_Daoqi.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-4-background.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterBackground_Daoqi.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-3-logo.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterIcon_Dragonspine.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-3-background.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterBackground_Dragonspine.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-2-logo.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterIcon_Liyue.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-2-background.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterBackground_Liyue.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-1-logo.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterIcon_Mengde.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-1-background.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterBackground_Mengde.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-10-logo.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterIcon_ChenYuVale.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-10-background.png": {
+    "source": "https://act-webstatic.hoyoverse.com/game_record/genshin/city_icon/UI_ChapterBackground_ChenYuVale.png",
+    "origin": "Official HoYoLAB Battle Chronicle index API",
+    "retrieved": "2026-10-02"
+  },
+  "region-15-logo.png": {
+    "source": "https://fastcdn.hoyoverse.com/mi18n/hk4e_global/m03311813081421/upload/a1f09d864f0324ffb87a0ef1fe30117f_3643592784536160008.png",
+    "origin": "Official HoYoLAB interactive-map get_area_pageLabel API",
+    "retrieved": "2026-10-02"
+  },
+  "region-17-logo.png": {
+    "source": "https://act-upload.mihoyo.com/ys-map-op/2025/08/14/345102903/b44721955b9ff5b85abbb597b8c316c9_5356425650534810897.png",
+    "origin": "Official HoYoLAB interactive-map get_area_pageLabel API",
+    "retrieved": "2026-10-02"
+  },
+  "temple-of-space-background.png": {
+    "source": "Pasted image 20261002160949.png",
+    "origin": "User-supplied reference attached to Fix.md",
+    "retrieved": "2026-10-02"
+  },
+  "frost-moon-background.png": {
+    "source": "Pasted image 20261002161618.png",
+    "origin": "User-supplied reference attached to Fix.md",
+    "retrieved": "2026-10-02"
+  },
+  "sacred-mountain-background.png": {
+    "source": "Pasted image 20261002161656.png",
+    "origin": "User-supplied reference attached to Fix.md",
+    "retrieved": "2026-10-02"
+  },
+  "region-17-background.png": {
+    "source": "Pasted image 20261002164333.png",
+    "origin": "User-supplied reference attached to revised Fix.md",
+    "retrieved": "2026-10-02"
+  },
+  "region-15-background.png": {
+    "source": "Pasted image 20261002164426.png",
+    "origin": "User-supplied reference attached to revised Fix.md",
+    "retrieved": "2026-10-02"
+  }
+}

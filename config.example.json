@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "game": "genshin",
+  "public_account": {"uid": "", "region": "auto"},
+  "akasha": {"enabled": true},
+  "hoyolab": {"enabled": false, "region": "os", "game_uid": "", "server": "", "cookies": {}},
+  "server": {"host": "127.0.0.1", "port": 8000, "allowed_hosts": []},
+  "cache": {"public_ttl_seconds": 300, "ranking_ttl_seconds": 900, "notes_ttl_seconds": 60},
+  "network": {"timeout_seconds": 15, "max_retries": 2},
+  "ui": {"accent": "amber"}
+}
