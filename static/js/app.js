@@ -1,6 +1,24 @@
 "use strict";
 const $ = (id) => document.getElementById(id);
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
+const publicMode = document.documentElement?.dataset.public === "true";
+function devicePreferences(config, changes) {
+  let saved = {};
+  try {saved = JSON.parse(localStorage.getItem("hoyo-device-preferences") || "{}");} catch {}
+  const result = JSON.parse(JSON.stringify(config));
+  for (const input of [saved, changes]) {
+    if (!input || typeof input !== "object") continue;
+    const uid = input.public_account?.uid;
+    if (uid === "" || /^[0-9]{9,10}$/.test(uid)) result.public_account.uid = String(uid);
+    if (typeof input.akasha?.enabled === "boolean") result.akasha.enabled = input.akasha.enabled;
+    if (["amber","green","ocean","violet","rose"].includes(input.ui?.accent)) result.ui.accent = input.ui.accent;
+    if (["id","en"].includes(input.ui?.language)) result.ui.language = input.ui.language;
+  }
+  if (changes) {
+    localStorage.setItem("hoyo-device-preferences", JSON.stringify({public_account:result.public_account,akasha:result.akasha,ui:result.ui}));
+  }
+  return result;
+}
 const state = {config: null, characters: [], rankings: [], uid: "", loadedUid: "", view: "overview", generation: 0, notesGeneration: 0, loading: false, rankingsLoading: false, rankingRequest: 0, rankPage: 1, charPage: 1, pageSize: 10, sortDirection: 1, rankSort: "rank", rankDir: 1};
 const cooldowns = {};
 function rememberCooldown(source,seconds) { if(seconds>0) cooldowns[source]=Date.now()+seconds*1000; }
@@ -15,6 +33,7 @@ const views = {
   settings: ["05", "Pengaturan", "Preferensi, koneksi HoYoLAB, dan akun catatan harian."],
   detail: ["", "Detail build", "Snapshot showcase publik dari Enka.Network."]
 };
+if (publicMode) views.settings[2] = "Preferensi disimpan di browser perangkat ini.";
 const escape = (v) => String(v ?? "—").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const number = (v) => v == null ? t("Belum tersedia") : Number(v).toLocaleString(language==="en" ? "en-US" : "id-ID", {maximumFractionDigits: Number(v)>0 && Number(v)<0.1 ? 4 : 1});
 const statValue = (s) => `${number(s.value)}${s.percent ? "%" : ""}`;
@@ -97,10 +116,15 @@ function updateLoadButton() {
 }
 function notice(message, error=false) { $("notice").textContent = t(message); $("notice").hidden = !message; $("notice").classList.toggle("error", error); }
 async function api(path, method="GET", body) {
+  if (publicMode && path === "/config" && method === "PATCH") {
+    if (body.public_account?.uid !== undefined && body.public_account.uid !== "" && !/^[0-9]{9,10}$/.test(body.public_account.uid)) throw new Error("Masukkan UID Genshin berisi 9 atau 10 digit.");
+    return {data:devicePreferences(state.config,body)};
+  }
   const source=path.startsWith("/showcase/") ? `showcase:${path.split("/")[2]}` : path.startsWith("/rankings/") ? `rankings:${path.split("/")[2]}` : ["/notes","/explore"].includes(path) ? path.slice(1) : path==="/refresh" ? ["notes","explore"].includes(body.source) ? body.source : `${body.source}:${body.uid}` : null;
   if(source && waitSeconds(source) && (method==="POST" || source==="notes")) throw new Error(`Dapat diperbarui lagi dalam ${waitSeconds(source)} detik.`);
   const response = await fetch(`/api/v1${path}`, {method, headers: {"Content-Type":"application/json", "X-CSRF-Token":csrf}, body: body === undefined ? undefined : JSON.stringify(body)});
   const result = await response.json();
+  if (publicMode && path === "/config" && response.ok) result.data = devicePreferences(result.data);
   if(source) rememberCooldown(source,result.error?.retry_after_seconds ?? result.meta?.refresh_after_seconds);
   const currentSource = ["notes","explore"].includes(source) ? String(result.data?.uid)===String(state.config?.hoyolab.game_uid) : !source || source.endsWith(`:${state.uid}`);
   if(result.meta && currentSource) {
@@ -111,6 +135,7 @@ async function api(path, method="GET", body) {
   return result;
 }
 function show(view, push=true) {
+  if (publicMode && ["notes","explore"].includes(view)) view = "overview";
   if (!views[view]) view = "overview";
   state.view = view;
   document.querySelectorAll(".view").forEach(el => el.hidden = el.id !== `view-${view}`);

@@ -1,6 +1,7 @@
 """Loopback-only dashboard. Run with `python cli.py serve`."""
 import asyncio
 import secrets
+import os
 from contextlib import asynccontextmanager
 from urllib.parse import urlsplit
 
@@ -29,29 +30,38 @@ def merge(target, changes):
 
 
 def create_app(config_path=CONFIG_PATH, service=None):
+    public_mode = os.environ.get("VERCEL") == "1" or os.environ.get("HOYO_HUB_PUBLIC") == "1"
     # Host policy is read once at startup; changing it requires a restart.
-    settings = load_config(config_path)
+    settings = Settings() if public_mode else load_config(config_path)
 
     @asynccontextmanager
     async def lifespan(app):
-        app.state.hub = service or HubService(load_config(config_path))
+        app.state.hub = service or HubService(settings if public_mode else load_config(config_path))
         app.state.csrf = secrets.token_urlsafe(32)
         app.state.config_lock = asyncio.Lock()
         yield
         await app.state.hub.close()
 
     app = FastAPI(title="HoYo-Akasha Hub", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.server.trusted_hosts)
+    hosts = settings.server.trusted_hosts
+    if public_mode:
+        hosts += [os.environ[key] for key in ("VERCEL_URL", "VERCEL_PROJECT_PRODUCTION_URL", "VERCEL_BRANCH_URL") if os.environ.get(key)]
+        hosts += [host.strip() for host in os.environ.get("HOYO_HUB_ALLOWED_HOSTS", "").split(",") if host.strip()]
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=hosts)
     app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
     templates = Jinja2Templates(directory=ROOT / "templates")
 
     @app.middleware("http")
     async def local_security(request, call_next):
+        if public_mode and (request.url.path.startswith("/api/v1/auth/") or request.url.path in (
+                "/api/v1/notes", "/api/v1/explore", "/api/v1/accounts/hoyolab")
+                or (request.url.path == "/api/v1/config" and request.method != "GET")):
+            return JSONResponse({"error": {"code": "PUBLIC_ONLY", "message": "Preferences are saved in your browser. HoYoLAB is unavailable on this public site."}}, 403)
         if request.method in ("POST", "PATCH", "DELETE", "PUT"):
             origin = request.headers.get("origin", "")
             parsed = urlsplit(origin)
             if (parsed.scheme not in ("http", "https") or parsed.netloc != request.headers.get("host")
-                    or not secrets.compare_digest(request.headers.get("x-csrf-token", ""), request.app.state.csrf)):
+                    or (not public_mode and not secrets.compare_digest(request.headers.get("x-csrf-token", ""), request.app.state.csrf))):
                 return JSONResponse({"error": {"code": "INVALID_ORIGIN", "message": "Reload the local dashboard and retry."}}, 403)
         response = await call_next(request)
         response.headers["Cache-Control"] = "no-store"
@@ -114,7 +124,7 @@ def create_app(config_path=CONFIG_PATH, service=None):
     @app.get("/settings")
     async def dashboard(request: Request):
         return templates.TemplateResponse(request=request, name="dashboard.html",
-            context={"csrf": app.state.csrf, "accent": app.state.hub.settings.ui.accent})
+            context={"csrf": app.state.csrf, "accent": app.state.hub.settings.ui.accent, "public_mode": public_mode})
 
     @app.get("/api/v1/health")
     async def health():
@@ -230,6 +240,8 @@ def create_app(config_path=CONFIG_PATH, service=None):
     async def refresh(request: Request):
         payload = await body(request)
         source = payload.get("source")
+        if public_mode and source not in ("showcase", "rankings"):
+            raise HubError("PUBLIC_ONLY", "Only public showcase and rankings are available.", status=403)
         if source not in ("showcase", "rankings", "notes", "explore"):
             raise HubError("INVALID_SOURCE", "Choose showcase, rankings, notes, or explore.", status=400)
         return await app.state.hub.fetch(source, payload.get("uid"), refresh=True)

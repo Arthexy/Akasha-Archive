@@ -2,7 +2,33 @@
 
 A local Genshin Impact workspace with a Rich terminal interface and a FastAPI dashboard. Public showcase data comes from Enka.Network; build rankings come from Akasha. Optional HoYoLAB cookies enable private daily notes.
 
-## Quick start
+## Deploy to Vercel (public showcase and rankings)
+
+Import `Arthexy/Akasha-Archive` at https://vercel.com/new. Use the **FastAPI**
+framework preset and repository root (`./`). Leave build and output overrides
+disabled. Python 3.12 is selected by `.python-version`.
+
+Vercel automatically enables public mode via `VERCEL=1`. This mode ignores local
+configuration and HoYoLAB environment credentials, blocks server configuration
+writes and private endpoints, and hides private account features. Do not upload
+`config.json` or add HoYoLAB cookies to Vercel.
+
+Default UID, theme, language, ranking preference and recent accounts are stored
+in each visitor's browser. They do not sync between devices or browsers and are
+removed when site data is cleared. Public Enka/Akasha data is fetched on demand;
+the server cache is temporary and keyed by UID.
+
+Deployment and production hosts are allowed through Vercel's URL environment
+variables. For a custom domain, add its hostname to `HOYO_HUB_ALLOWED_HOSTS`
+(comma-separated, without `https://`) and redeploy. Keep Vercel's system
+environment variables enabled. Ranking availability also depends on Akasha
+and the runtime's `curl` binary; verify a real UID after deployment.
+
+For a local public-mode preview, set `HOYO_HUB_PUBLIC=1` before starting the app.
+Offline checks: `node tests/test_device_preferences.cjs` and
+`python -m pytest tests/test_public_deployment.py -q`.
+
+## Local installation
 
 Python 3.11 or newer is required. No Node.js, database, or frontend build step.
 

@@ -1,0 +1,14 @@
+.venv/
+.git/
+__pycache__/
+.pytest*/
+.opencode/
+.impeccable/
+ssh-setup/
+config.json
+config.json.*
+.env
+.env.*
+tests/
+/*.png
+/*.jpg
