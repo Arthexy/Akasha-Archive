@@ -44,3 +44,10 @@ ssh-setup/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Private project planning and review documents
+/DESIGN.md
+/HoYo-Akasha-Hub-PRD.md
+/PRD-Redesign-HoYo-Akasha-Hub.md
+/PRODUCT.md
+/REDESIGN-QA.md

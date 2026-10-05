@@ -12,3 +12,8 @@ config.json.*
 tests/
 /*.png
 /*.jpg
+/DESIGN.md
+/HoYo-Akasha-Hub-PRD.md
+/PRD-Redesign-HoYo-Akasha-Hub.md
+/PRODUCT.md
+/REDESIGN-QA.md
